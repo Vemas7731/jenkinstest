@@ -28,9 +28,7 @@ pipeline {
                 script {
                     sh '''
                         python3 -m venv venv
-                        source venv/bin/activate
-                        pip install --upgrade pip
-                        pip install pandas numpy matplotlib seaborn
+                        bash -c "source venv/bin/activate && pip install --upgrade pip && pip install pandas numpy matplotlib seaborn"
                     '''
                 }
             }
@@ -39,8 +37,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        source venv/bin/activate
-                        python anjay2.py
+                        bash -c "source venv/bin/activate && python anjay2.py"
                     '''
                 }
             }
