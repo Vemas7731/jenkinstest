@@ -4,42 +4,44 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    git branch: 'main', url: 'https://github.com/Vemas7731/jenkinstest.git'
-                }
+                git 'https://github.com/Vemas7731/jenkinstest.git'
             }
         }
+
         stage('Build') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'echo "Building project..."'
-                }
+                echo 'Building project...'
             }
         }
+
         stage('Test') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'echo "Running tests..."'
-                }
+                echo 'Running tests...'
             }
         }
-        stage('Install Dependencies') { // Ganti nama stage biar unik
+
+        stage('Install Dependencies') {
             steps {
-                sh 'pip3 install --user pandas'
+                sh '''
+                python3 -m venv venv
+                source venv/bin/activate
+                pip install pandas
+                '''
             }
         }
-        stage('Run Python Script') { // Ganti nama stage kedua biar unik
+
+        stage('Run Python Script') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'python3 anjay2.py'
-                }
+                sh '''
+                source venv/bin/activate
+                python anjay2.py  # Ganti dengan nama script Python yang ingin dijalankan
+                '''
             }
         }
+
         stage('Deploy') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'echo "Deploying application..."'
-                }
+                echo 'Deploying application...'
             }
         }
     }
@@ -47,18 +49,18 @@ pipeline {
     post {
         success {
             sh '''
-                curl -H "Content-Type: application/json" \
-                -X POST \
-                -d '{"username": "Jenkins", "content": "✅ Pipeline SUCCESS! 🎉"}' \
-                https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
+            curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d '{"username": "Jenkins", "content": "✅ Pipeline SUCCESS! 🎉"}' \
+                 https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
             '''
         }
         failure {
             sh '''
-                curl -H "Content-Type: application/json" \
-                -X POST \
-                -d '{"username": "Jenkins", "content": "❌ Pipeline FAILED! Check logs. 🚨"}' \
-                https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
+            curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d '{"username": "Jenkins", "content": "❌ Pipeline FAILED! Check logs. 🚨"}' \
+                 https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
             '''
         }
     }
