@@ -23,6 +23,13 @@ pipeline {
                 }
             }
         }
+        stage('Run Script') { // Tambahin stage buat eksekusi anjay2.py
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'python3 anjay2.py' // Eksekusi script
+                }
+            }
+        }
         stage('Deploy') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
