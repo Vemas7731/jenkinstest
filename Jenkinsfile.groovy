@@ -25,15 +25,22 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'pip3 install --user pandas || exit 1'
+                catchError {
+                    sh '''
+                    python3 -m venv venv
+                    source venv/bin/activate
+                    pip install pandas
+                    '''
                 }
             }
         }
         stage('Execute Python Script') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'python3 anjay2.py'
+                catchError {
+                    sh '''
+                    source venv/bin/activate
+                    python anjay2.py
+                    '''
                 }
             }
         }
