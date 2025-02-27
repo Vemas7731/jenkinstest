@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        SONARQUBE_URL = 'http://your-sonarqube-server:9000' // Ganti dengan URL SonarQube
+        SONARQUBE_TOKEN = credentials('sonarqube-token') // Simpan token di Jenkins Credentials
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -30,6 +35,21 @@ pipeline {
                         python3 -m venv venv
                         bash -c "source venv/bin/activate && pip install --upgrade pip && pip install pandas numpy matplotlib seaborn"
                     '''
+                }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') { // Pastikan ini sesuai dengan nama di Jenkins Global Tool
+                        sh '''
+                            sonar-scanner \
+                            -Dsonar.projectKey=jenkinstest \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=$SONARQUBE_URL \
+                            -Dsonar.login=$SONARQUBE_TOKEN
+                        '''
+                    }
                 }
             }
         }
