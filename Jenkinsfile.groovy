@@ -44,7 +44,6 @@ pipeline {
                 }
             }
         }
-        }
         stage('Deploy') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
