@@ -25,21 +25,22 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                catchError {
+                script {
                     sh '''
-                    sudo apt update && sudo apt install -y python3-venv
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    sh 'pip install pandas numpy matplotlib seaborn'
+                        python3 -m venv venv
+                        source venv/bin/activate
+                        pip install --upgrade pip
+                        pip install pandas numpy matplotlib seaborn
                     '''
                 }
             }
         }
         stage('Execute Python Script') {
             steps {
-                catchError {
+                script {
                     sh '''
-                    bash -c "source venv/bin/activate && python anjay2.py"
+                        source venv/bin/activate
+                        python anjay2.py
                     '''
                 }
             }
