@@ -1,5 +1,6 @@
 pipeline {
-    agent any  // Menjalankan pipeline di agent mana saja
+    agent any
+
     stages {
         stage('Checkout') {
             steps {
@@ -30,9 +31,23 @@ pipeline {
             }
         }
     }
+
     post {
+        success {
+            sh '''
+                curl -H "Content-Type: application/json" \
+                -X POST \
+                -d '{"username": "Jenkins", "content": "✅ Pipeline SUCCESS! 🎉"}' \
+                https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
+            '''
+        }
         failure {
-            sh 'echo "Pipeline failed! Check logs for details."'
+            sh '''
+                curl -H "Content-Type: application/json" \
+                -X POST \
+                -d '{"username": "Jenkins", "content": "❌ Pipeline FAILED! Check logs. 🚨"}' \
+                https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG
+            '''
         }
     }
 }
