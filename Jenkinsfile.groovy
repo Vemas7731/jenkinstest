@@ -27,8 +27,9 @@ pipeline {
             steps {
                 catchError {
                     sh '''
+                    sudo apt update && sudo apt install -y python3-venv
                     python3 -m venv venv
-                    source venv/bin/activate
+                    . venv/bin/activate
                     pip install pandas
                     '''
                 }
@@ -38,11 +39,11 @@ pipeline {
             steps {
                 catchError {
                     sh '''
-                    source venv/bin/activate
-                    python anjay2.py
+                    bash -c "source venv/bin/activate && python anjay2.py"
                     '''
                 }
             }
+        }
         }
         stage('Deploy') {
             steps {
