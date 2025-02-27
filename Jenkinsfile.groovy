@@ -37,7 +37,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        bash -c "source venv/bin/activate && python anjay2.py"
+                        bash -c "source venv/bin/activate && python helloworld.py"
                     '''
                 }
             }
