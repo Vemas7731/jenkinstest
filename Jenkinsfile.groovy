@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/Vemas7731/analisistest.git'  // Ambil kode dari Git
+                git 'https://github.com/Vemas7731/jenkinstest.git'  // Ambil kode dari Git
             }
         }
         stage('Build') {
