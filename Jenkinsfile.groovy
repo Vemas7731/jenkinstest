@@ -23,6 +23,14 @@ pipeline {
                 }
             }
         }
+        stage('Run Script') {
+            steps {
+                sh '''
+                    pip3 install --user pandas
+                    python3 anjay2.py
+                '''
+            }
+        }
         stage('Run Script') { // Tambahin stage buat eksekusi anjay2.py
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
