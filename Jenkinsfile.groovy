@@ -30,7 +30,7 @@ pipeline {
                     sudo apt update && sudo apt install -y python3-venv
                     python3 -m venv venv
                     . venv/bin/activate
-                    pip install pandas
+                    sh 'pip install pandas numpy matplotlib seaborn'
                     '''
                 }
             }
