@@ -23,18 +23,15 @@ pipeline {
                 }
             }
         }
-        stage('Run Script') {
+        stage('Install Dependencies') { // Ganti nama stage biar unik
             steps {
-                sh '''
-                    pip3 install --user pandas
-                    python3 anjay2.py
-                '''
+                sh 'pip3 install --user pandas'
             }
         }
-        stage('Run Script') { // Tambahin stage buat eksekusi anjay2.py
+        stage('Run Python Script') { // Ganti nama stage kedua biar unik
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'python3 anjay2.py' // Eksekusi script
+                    sh 'python3 anjay2.py'
                 }
             }
         }
