@@ -2,31 +2,70 @@ pipeline {
     agent any
 
     environment {
-        DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
-        SONARQUBE_SERVER = 'sonarqube-server'  // Nama credential SonarQube di Jenkins
+        SCANNER_HOME = tool 'SonarQube' // Sesuaikan dengan nama tool di Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Vemas7731/jenkinstest.git'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    git branch: 'main', url: 'https://github.com/Vemas7731/jenkinstest.git'
+                }
             }
         }
 
-        stage('Run Python Script') {
+        stage('Build') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Building project..."'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Running tests..."'
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
             steps {
                 script {
-                    echo 'Executing helloworld.py...'
-                    sh 'python3 helloworld.py'
+                    sh '''
+                        python3 -m venv venv
+                        bash -c "source venv/bin/activate && pip install --upgrade pip && pip install pandas numpy matplotlib seaborn"
+                    '''
+                }
+            }
+        }
+
+        stage('Execute Python Script') {
+            steps {
+                script {
+                    sh '''
+                        bash -c "source venv/bin/activate && python helloworld.py"
+                    '''
                 }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    withSonarQubeEnv('SonarQube') {  // Sesuaikan dengan nama server di Jenkins
-                        sh 'sonar-scanner -Dsonar.projectKey=jenkinstest -Dsonar.sources=.'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    withSonarQubeEnv('sonar-server') {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_AUTH_TOKEN')]) {
+                            sh '''
+                                ${SCANNER_HOME}/bin/sonar-scanner \
+                                -Dsonar.projectKey=tes \
+                                -Dsonar.projectName=tes \
+                                -Dsonar.sources=. \
+                                -Dsonar.host.url=https://sonarcloud.io \
+                                -Dsonar.login=${SONAR_AUTH_TOKEN} \
+                                -Dsonar.organization=muhammadrezaalfatah
+                            '''
+                        }
                     }
                 }
             }
@@ -35,9 +74,18 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    timeout(time: 1, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
+                    def qg = waitForQualityGate()
+                    if (qg.status != 'OK') {
+                        error "Quality Gate Failed: ${qg.status}"
                     }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Deploying application..."'
                 }
             }
         }
@@ -45,26 +93,10 @@ pipeline {
 
     post {
         success {
-            script {
-                echo 'Pipeline succeeded! Sending Discord notification...'
-                sh """
-                curl -H "Content-Type: application/json" \\
-                     -X POST \\
-                     -d '{ "content": "✅ Jenkins Pipeline Succeeded! SonarQube Passed 🎉" }' \\
-                     "$DISCORD_WEBHOOK_URL"
-                """
-            }
+            sh 'curl -X POST -H "Content-Type: application/json" -d \'{"username": "Jenkins", "content": "✅ Pipeline SUCCESS! 🎉"}\' https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
         }
         failure {
-            script {
-                echo 'Pipeline failed! Sending Discord notification...'
-                sh """
-                curl -H "Content-Type: application/json" \\
-                     -X POST \\
-                     -d '{ "content": "❌ Jenkins Pipeline Failed! SonarQube Issues Found ⚠️" }' \\
-                     "$DISCORD_WEBHOOK_URL"
-                """
-            }
+            sh 'curl -X POST -H "Content-Type: application/json" -d \'{"username": "Jenkins", "content": "❌ Pipeline FAILED! Check logs. 🚨"}\' https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
         }
     }
 }
