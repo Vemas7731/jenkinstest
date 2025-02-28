@@ -22,12 +22,17 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarCloud Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('sonarqube-server') {  // Sesuaikan dengan nama server di Jenkins
-                        sh 'sonar-scanner -Dsonar.projectKey=jenkinstest -Dsonar.sources=.'
-                    }
+                    sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=Vemas7731_jenkinstest \
+                      -Dsonar.organization=vemas7731 \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=https://sonarcloud.io \
+                      -Dsonar.login=004ff33f53154da4086b27ea56cf9cd234a13449
+                    '''
                 }
             }
         }
