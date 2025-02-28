@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
-        SCANNER_HOME = tool 'sonar-scanner-7' // Sesuaikan dengan nama scanner
+        SCANNER_HOME = tool 'sonar-scanner' // Sesuaikan dengan nama scanner
     }
 
     stages {
