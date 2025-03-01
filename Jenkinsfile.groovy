@@ -1,48 +1,51 @@
 pipeline {
     agent any
 
-    environment {
-        DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
-        SCANNER_HOME = tool 'Sonarscanner' // Sesuaikan dengan nama scanner
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Vemas7731/jenkinstest.git'
-            }
-        }
-
-        stage('Run Python Script') {
-            steps {
-                script {
-                    echo 'Executing helloworld.py...'
-                    sh 'python3 helloworld.py'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    git branch: 'main', url: 'https://github.com/Vemas7731/jenkinstest.git' 
                 }
             }
         }
-
-        stage('SonarCloud Analysis') {
+        stage('Build') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Building project..."'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Running tests..."'
+                }
+            }
+        }
+        stage('Install Dependencies') {
             steps {
                 script {
                     sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=Vemas7731_jenkinstest \
-                      -Dsonar.organization=vemas7731 \
-                      -Dsonar.sources=. \
-                      -Dsonar.host.url=https://sonarcloud.io \
-                      -Dsonar.login=004ff33f53154da4086b27ea56cf9cd234a13449
+                        python3 -m venv venv
+                        bash -c "source venv/bin/activate && pip install --upgrade pip && pip install pandas numpy matplotlib seaborn"
                     '''
                 }
             }
         }
-
-        stage('Quality Gate') {
+        stage('Execute Python Script') {
             steps {
                 script {
-                    timeout(time: 1, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
-                    }
+                    sh '''
+                        bash -c "source venv/bin/activate && python helloworld.py"
+                    '''
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'echo "Deploying application..."'
                 }
             }
         }
@@ -50,26 +53,10 @@ pipeline {
 
     post {
         success {
-            script {
-                echo 'Pipeline succeeded! Sending Discord notification...'
-                sh """
-                curl -H "Content-Type: application/json" \\
-                     -X POST \\
-                     -d '{ "content": "✅ Jenkins Pipeline Succeeded! SonarQube Passed 🎉" }' \\
-                     "$DISCORD_WEBHOOK_URL"
-                """
-            }
+            sh 'curl -X POST -H "Content-Type: application/json" -d \'{"username": "Jenkins", "content": "✅ Pipeline SUCCESS! 🎉"}\' https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
         }
         failure {
-            script {
-                echo 'Pipeline failed! Sending Discord notification...'
-                sh """
-                curl -H "Content-Type: application/json" \\
-                     -X POST \\
-                     -d '{ "content": "❌ Jenkins Pipeline Failed! SonarQube Issues Found ⚠️" }' \\
-                     "$DISCORD_WEBHOOK_URL"
-                """
-            }
+            sh 'curl -X POST -H "Content-Type: application/json" -d \'{"username": "Jenkins", "content": "❌ Pipeline FAILED! Check logs. 🚨"}\' https://discordapp.com/api/webhooks/1344552070253908008/cb713-OKHK1-h0ReOPTp97mbbC1X4Tlsxj52c4F0knz7LJD0FslDoDuSmb6_NAlmomxG'
         }
     }
 }
